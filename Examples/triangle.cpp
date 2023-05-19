@@ -138,7 +138,11 @@ int main()
     // unbinding VAO 
     glBindVertexArray(0);
     
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    // if we wanted to draw rectangles and wanted to draw using indices of vertices instead of the raw vertices
+    // 1) declare an EBO (element buffer object)
+    // 2) this EBO is bound to the VBO so no issues in the state swapping there
+    // 3) We can use glDrawElements instead of glDrawArrays
 
     //render loop
     while(!glfwWindowShouldClose(window)){
