@@ -3,11 +3,8 @@
 #include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "../Includes/glHelpers.h"
 
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height){
-    glViewport(0, 0, width, height);
-}
 
 int buildTriangle()
 {

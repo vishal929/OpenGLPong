@@ -110,11 +110,13 @@
     <ClCompile Include="..\..\..\..\..\glad\src\glad.c" />
     <ClCompile Include="Examples\triangle.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Shader.h" />
+    <ClCompile Include="Includes\Shader.h" />
+    <ClCompile Include="Utilities\glHelpers.cpp" />
     <ClCompile Include="Utilities\Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Includes\glHelpers.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OpenGLPong.rc" />
