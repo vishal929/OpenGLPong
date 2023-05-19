@@ -108,7 +108,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\glad\src\glad.c" />
+    <ClCompile Include="Examples\triangle.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Shader.h" />
+    <ClCompile Include="Utilities\Shader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="OpenGLPong.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

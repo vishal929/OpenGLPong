@@ -9,7 +9,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     glViewport(0, 0, width, height);
 }
 
-int main()
+int buildTriangle()
 {
     if (!glfwInit()){
         printf("failed to initialize glfw context!\n");
