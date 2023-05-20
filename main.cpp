@@ -38,39 +38,94 @@ int main()
     
 
     // simple shaders initialization
-    Shader shader("./Vertex_Shaders/standard_shader.vs", "./Fragment_Shaders/standard_shader.fs");
+    Shader shader("./Vertex_Shaders/texture_shader.vs", "./Fragment_Shaders/texture_shader.fs");
+
+    // texture options
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // loading our texture
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("Textures/container.jpg", &width, &height, &nrChannels, 0);
+
+    if (data == nullptr) {
+        // we failed to load the texture
+        std::cout << "FAILED::LOADING::TEXTURE!" << std::endl;
+        return 1;
+    }
+
+    // generating texture and mipmap based on loaded image
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // mipmaps are already generated, we can safely free the memory of the image
+    stbi_image_free(data);
     
-    // our shape of a triangle
+    // our vertices for the container
     float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
     };
+
+    unsigned int indices[] = {  // note that we start from 0!
+        0, 1, 3,  // first Triangle
+        1, 2, 3   // second Triangle
+    };
+    
 
     // declaring a VAO (so we can keep our state for drawing these vertices in an object and easily swap between states)
     // this example uses a single state, but I am just keeping this for learning
-    unsigned int VAO;
+    unsigned int VAO, VBO, EBO;
+
+    // creating vertex array object (state)
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
-
+    
     // creating a buffer
-    unsigned int VBO;
     glGenBuffers(1, &VBO);
+
+    // creating the element buffer object (to reference vertices by index)
+    glGenBuffers(1, &EBO);
 
     // declaring that our buffer is a vertex buffer
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     
     // cpu to gpu transfer
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // handling EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     
     // describing the buffer to opengl
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    //vertex attribute (index 0, number components 3, stride is 8* sizeof(float), offset is 0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // texture coordinate attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // clearing currently bound buffer
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     
     // unbinding VAO 
     glBindVertexArray(0);
     
-    glDrawArrays(GL_TRIANGLES, 0, 3);
 
     //render loop
     while(!glfwWindowShouldClose(window)){
@@ -79,9 +134,9 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         
         shader.use();
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
-
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();    
