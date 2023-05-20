@@ -21,13 +21,13 @@
     <ClCompile Include="..\..\..\..\..\glad\src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Examples\triangle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\glHelpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

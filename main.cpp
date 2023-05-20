@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "Includes/Shader.hpp"
 #include "Includes/glHelpers.hpp"
+#include "Includes/stb_image.h"
 
 
 

@@ -108,11 +108,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\glad\src\glad.c" />
-    <ClCompile Include="Examples\triangle.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClInclude Include="Includes\Shader.hpp" />
     <ClCompile Include="Utilities\glHelpers.cpp" />
     <ClCompile Include="Utilities\Shader.cpp" />
+    <ClCompile Include="Utilities\stb_image.cpp" />
+    <ClInclude Include="Includes\Shader.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
