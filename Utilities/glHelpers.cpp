@@ -1,4 +1,5 @@
 // helper functions for opengl we might need
+#include "../Includes/glHelpers.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 

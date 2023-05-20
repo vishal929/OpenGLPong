@@ -1,7 +1,7 @@
 // glHelpers.h
 
-#ifndef glHelpers_H
-#define glHelpers_H
+#ifndef GLHELPERS_H
+#define GLHELPERS_H
 
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>

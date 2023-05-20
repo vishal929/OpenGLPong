@@ -3,7 +3,7 @@
 #include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "../Includes/glHelpers.h"
+#include "../Includes/glHelpers.hpp"
 
 
 int buildTriangle()
