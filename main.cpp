@@ -38,11 +38,15 @@ int main()
     
 
     // simple shaders initialization
-    Shader shader("./Vertex_Shaders/texture_shader.vs", "./Fragment_Shaders/texture_shader.fs");
+    Shader shader("./Vertex_Shaders/texture_shader.vs", "./Fragment_Shaders/double_texture_shader.fs");
 
     // texture options
-    unsigned int texture;
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned int texture,texture2;
     glGenTextures(1, &texture);
+    glGenTextures(1, &texture2);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -66,6 +70,34 @@ int main()
 
     // mipmaps are already generated, we can safely free the memory of the image
     stbi_image_free(data);
+
+    //second texture options
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+    // adding a second texture for fun!
+    data = stbi_load("Textures/awesomeface.png", &width, &height, &nrChannels, 0);
+
+    if (data == nullptr) {
+        // we failed to load the texture
+        std::cout << "FAILED::LOADING::TEXTURE!" << std::endl;
+        return 1;
+    }
+
+    // generating texture and mipmap based on loaded image (THIS IMAGE INCLUDES AN ALPHA CHANNEL!)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // mipmaps are already generated, we can safely free the memory of the image
+    stbi_image_free(data);
+
     
     // our vertices for the container
     float vertices[] = {
@@ -126,6 +158,11 @@ int main()
     // unbinding VAO 
     glBindVertexArray(0);
     
+    // setting uniforms
+    shader.use();
+    shader.setFloat("interpolation_const", 0.6);
+    shader.setInt("firstTexture", 0);
+    shader.setInt("secondTexture", 1);
 
     //render loop
     while(!glfwWindowShouldClose(window)){
@@ -134,7 +171,11 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         
         shader.use();
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
