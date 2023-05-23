@@ -30,6 +30,16 @@ class Camera {
 	roll is a rotation about the z-axis in degrees
 	*/
 	void moveCamera(glm::vec4 pos, float yaw, float pitch, float roll);
+	
+	/*
+		Moving the camera and generating direction vectors with quaternions instead of euler angles
+		pos is the location in world coordinates to move to
+		yaw is a rotation about the x-axis in degrees
+		pitch is a rotation about the y-axis in degrees
+		roll is a rotation about the z-axis in degrees
+
+	*/
+	void moveCameraQuaternion(glm::vec4 pos, float yaw, float pitch, float roll);
 
 	/*Returns a view matrix, which is the transformation which transforms coordinates in the world space to the camera space*/
 	glm::mat4 createView();
