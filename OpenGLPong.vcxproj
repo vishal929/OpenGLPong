@@ -109,9 +109,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\glad\src\glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Utilities\Camera.cpp" />
     <ClCompile Include="Utilities\glHelpers.cpp" />
     <ClCompile Include="Utilities\Shader.cpp" />
     <ClCompile Include="Utilities\stb_image.cpp" />
+    <ClInclude Include="Includes\Camera.hpp" />
     <ClInclude Include="Includes\Shader.hpp" />
   </ItemGroup>
   <ItemGroup>
