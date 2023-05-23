@@ -51,3 +51,20 @@ void Quaternion::scale(float m) {
 	this->z /= m;
 	this->w /= m;
 }
+
+/*Getting a rotation matrix from a quaternion*/
+glm::mat4 Quaternion::getRotationMatrix()
+{
+	glm::mat4 ret = glm::mat4(1.0f);
+	// adjusting the top left block part of the 4x4 identity matrix to get our rotation matrix
+	ret[0][0] = 1- 2 * pow(y,2) - 2 * pow(z,2);
+	ret[0][1] = 2 * x * y - 2 * w * z;
+	ret[0][2] = 2 * x * z + 2 * w * y;
+	ret[1][0] = 2 * x * y + 2 * w * z;
+	ret[1][1] = 1 - 2 * pow(x,2) - 2 * pow(z,2);
+	ret[1][2] = 2 * y * z + 2 * w * x;
+	ret[2][0] = 2 * x * z - 2 * w * y;
+	ret[2][1] = 2 * y * z - 2 * w * x;
+	ret[2][2] = 1 - 2 * pow(x,2) - 2 * pow(y,2);
+}
+

@@ -3,6 +3,8 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
 
+#include <glm/glm.hpp>
+
 class Quaternion {
 public:
 	// x-position of axis of rotation
@@ -34,5 +36,8 @@ public:
 
 	/*Scale operation for a quaternion (in case we need to renormalize due to floating point errors)*/
 	void scale(float m);
+
+	/*Getting a rotation matrix from a quaternion*/
+	glm::mat4 getRotationMatrix();
 };
 #endif
