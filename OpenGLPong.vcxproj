@@ -121,6 +121,7 @@
     <ClCompile Include="Utilities\Quaternion.cpp" />
     <ClCompile Include="Utilities\Shader.cpp" />
     <ClCompile Include="Utilities\stb_image.cpp" />
+    <ClCompile Include="Views\MainMenu.cpp" />
     <ClInclude Include="..\..\..\..\..\imgui-1.89.5\backends\imgui_impl_glfw.h" />
     <ClInclude Include="..\..\..\..\..\imgui-1.89.5\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="..\..\..\..\..\imgui-1.89.5\imconfig.h" />
