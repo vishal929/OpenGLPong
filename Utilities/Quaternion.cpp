@@ -1,8 +1,9 @@
 
 // quaternion helper class for 3d rotations
 
-#include "../Includes/Quaternion.hpp";
+#include "../Includes/Quaternion.hpp"
 #include <math.h>
+#include <glm/glm.hpp>
 
 /*Constructor for a quaternion, which represents no rotation*/
 Quaternion::Quaternion() {

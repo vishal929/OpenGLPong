@@ -1,6 +1,7 @@
 #include "../Includes/Camera.hpp"
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
+#include "../Includes/Quaternion.hpp"
 
 // camera class for easy camera definitions
 
@@ -46,6 +47,19 @@ void Camera::moveCamera(glm::vec4 pos, float yaw, float pitch, float roll) {
 */
 void Camera::moveCameraQuaternion(glm::vec4 pos, float yaw, float pitch, float roll) {
 	this->pos = pos;
+	
+	// quaternion representing no rotation!
+	Quaternion total = Quaternion();
+	Quaternion yawRot = Quaternion(1, 0, 0, yaw);
+	Quaternion pitchRot = Quaternion(0, 1, 0, pitch);
+	Quaternion rollRot = Quaternion(0, 0, 1, roll);
+
+	Quaternion rot = total * yawRot * pitchRot * rollRot;
+
+	glm::mat4 rotMatrix = rot.getRotationMatrix();
+	this->direction = rotMatrix * this->direction;
+	this->cameraRight = rotMatrix * this->cameraRight;
+	this->cameraUp = rotMatrix * this->cameraUp;
 }
 
 Camera::Camera() {
