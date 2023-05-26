@@ -67,5 +67,7 @@ glm::mat4 Quaternion::getRotationMatrix()
 	ret[2][0] = 2 * x * z - 2 * w * y;
 	ret[2][1] = 2 * y * z - 2 * w * x;
 	ret[2][2] = 1 - 2 * pow(x,2) - 2 * pow(y,2);
+
+	return ret;
 }
 
