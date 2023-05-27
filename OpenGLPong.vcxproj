@@ -118,6 +118,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Utilities\Camera.cpp" />
     <ClCompile Include="Utilities\glHelpers.cpp" />
+    <ClCompile Include="Utilities\Pong.cpp" />
     <ClCompile Include="Utilities\Quaternion.cpp" />
     <ClCompile Include="Utilities\Shader.cpp" />
     <ClCompile Include="Utilities\stb_image.cpp" />
@@ -131,6 +132,8 @@
     <ClInclude Include="..\..\..\..\..\imgui-1.89.5\imstb_textedit.h" />
     <ClInclude Include="..\..\..\..\..\imgui-1.89.5\imstb_truetype.h" />
     <ClInclude Include="Includes\Camera.hpp" />
+    <ClInclude Include="Includes\MainMenu.hpp" />
+    <ClInclude Include="Includes\Pong.hpp" />
     <ClInclude Include="Includes\Quaternion.hpp" />
     <ClInclude Include="Includes\Shader.hpp" />
   </ItemGroup>

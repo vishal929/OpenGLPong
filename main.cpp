@@ -16,6 +16,8 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+// including our main menu view
+#include "Includes/MainMenu.hpp"
 
 glm::mat4 create_transform() {
    // identity matrix (no translation)
@@ -72,9 +74,9 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    bool show_demo_window = true;
+    bool show_demo_window = false;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 
     //render loop
@@ -86,6 +88,8 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        buildMenu();
 
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);

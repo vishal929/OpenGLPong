@@ -1,5 +1,28 @@
 // holds logic for the UI for the Main Menu of our Pong Game
-// ultimately has 2 options: single player and multiplayer
-// --> we should have a title displaying that this is pong and we should have 2 buttons for the options
+/*
+	We should have a title for the game, and 3 buttons representing the options
+	1) single player
+	2) multiplayer
+	3) settings
+*/
 
+#include "imgui.h"
 
+// builds the UI view for our main menu
+void buildMenu() {
+	if (ImGui::Begin("Menu",false,ImGuiWindowFlags_AlwaysAutoResize)) {
+
+		if (ImGui::Button("Single Player")) {
+			// transition state to the single player pong game
+		}
+
+		if (ImGui::Button("Multi-Player")) {
+			// transition state to the multiplayer connection window
+		}
+
+		if (ImGui::Button("Settings")) {
+			// transition state to the settings window
+		}
+	}
+	ImGui::End();
+}
