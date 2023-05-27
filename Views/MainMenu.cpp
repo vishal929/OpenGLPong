@@ -1,9 +1,10 @@
 // holds logic for the UI for the Main Menu of our Pong Game
 /*
-	We should have a title for the game, and 3 buttons representing the options
+	We should have a title for the game, and 2 buttons representing the options
 	1) single player
 	2) multiplayer
-	3) settings
+	3) slider for ball speed (how fast the ball moves)
+	4) slider for bar speed (how fast the pong paddles can move)
 */
 
 #include "imgui.h"
@@ -20,9 +21,12 @@ void buildMenu() {
 			// transition state to the multiplayer connection window
 		}
 
-		if (ImGui::Button("Settings")) {
-			// transition state to the settings window
-		}
+		float ballSpeed = 1.0f;
+		float barSpeed = 1.0f;
+		ImGui::SliderFloat("ball speed:", &ballSpeed, 0.0f, 10.0f, "%.2f");
+		ImGui::SliderFloat("paddle speed:", &barSpeed, 0.0f, 10.0f, "%.2f");
+
+		
 	}
 	ImGui::End();
 }

@@ -3,6 +3,10 @@
 
 PongState::PongState()
 {
+    // we start with default settings in the state
+    ballSpeedMultiplier = 1;
+    barSpeedMultiplier = 1;
+
     // setting up shader to use with our pong state
     shader = new Shader("Vertex_Shaders/color_shader.vs", "Fragment_Shaders/color_shader.fs");
 

@@ -31,6 +31,12 @@ public:
 	// indices used to index the VBO in order to draw rectangles from triangular vertices
 	unsigned int* indices;
 	int indicesLength;
+	
+	// float from 0 to 10 which represents a multiplier on the ball speed (10 is 10x faster than 1, 0 is no speed)
+	float ballSpeedMultiplier;
+	
+	// float from 0 to 10 which represents a multiplier on the speed at which a player can move their bar (10 is 10x faster than 1, 0 is no movement)
+	float barSpeedMultiplier;
 
 	// shader which we want to use for these objects
 	Shader* shader;
