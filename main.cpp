@@ -18,6 +18,8 @@
 #include <imgui_impl_opengl3.h>
 // including our main menu view
 #include "Includes/MainMenu.hpp"
+// including our pong logic
+#include "Includes/Pong.hpp"
 
 glm::mat4 create_transform() {
    // identity matrix (no translation)
@@ -76,15 +78,20 @@ int main()
 
     bool show_demo_window = false;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+    ImVec4 clear_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
+    // setup our pong state
+    PongState pong = PongState();
 
     //render loop
     while(!glfwWindowShouldClose(window)){
         
         glfwPollEvents();    
 
+        
+
         // Start the Dear ImGui frame
+        /*
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -128,12 +135,14 @@ int main()
 
         // Rendering
         ImGui::Render();
+        */
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        pong.draw();
 
         glfwSwapBuffers(window);
 
