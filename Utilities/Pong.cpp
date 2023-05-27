@@ -1,4 +1,6 @@
 #include "../Includes/Pong.hpp"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 // Pong.cpp holds logic for building and running the pong game (AI, vertices, etc.)
 
 PongState::PongState()
