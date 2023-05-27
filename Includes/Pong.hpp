@@ -36,6 +36,15 @@ public:
 	// float from 0 to 10 which represents a multiplier on the speed at which a player can move their bar (10 is 10x faster than 1, 0 is no movement)
 	float barSpeedMultiplier;
 
+	// left player's score
+	int leftScore;
+
+	// right player's score
+	int rightScore;
+
+	// maximum score: when a player hits this, they win
+	int maxScore;
+
 	// shader which we want to use for these objects
 	Shader* shader;
 	

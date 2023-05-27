@@ -5,6 +5,7 @@
 	2) multiplayer
 	3) slider for ball speed (how fast the ball moves)
 	4) slider for bar speed (how fast the pong paddles can move)
+	5) slider for maximum score (when should the game end?)
 */
 
 #include "imgui.h"
@@ -23,9 +24,10 @@ void buildMenu() {
 
 		float ballSpeed = 1.0f;
 		float barSpeed = 1.0f;
+		int maxScore = 5;
 		ImGui::SliderFloat("ball speed:", &ballSpeed, 0.0f, 10.0f, "%.2f");
 		ImGui::SliderFloat("paddle speed:", &barSpeed, 0.0f, 10.0f, "%.2f");
-
+		ImGui::SliderInt("maximum score:", &maxScore, 1, 20);
 		
 	}
 	ImGui::End();
