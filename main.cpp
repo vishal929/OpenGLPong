@@ -45,7 +45,8 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
     // for mac osx glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Pong", NULL, NULL);
     if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -81,10 +82,23 @@ int main()
     ImVec4 clear_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     // setup our pong state
-    PongState pong = PongState();
+    PongState* pong = new PongState();
+
+    // passing pointer to our pong state to the glfw window (so we can reference it in callbacks)
+    //glfwSetWindowUserPointer(window, pong);
+
+    // setting callback needed to handle user input to move the left pong paddle
+    //glfwSetKeyCallback(window, bar_outer_callback_handler);
+
+    // keeping track of time
+    double time = 0;
 
     //render loop
     while(!glfwWindowShouldClose(window)){
+        // handling time based update of state
+        double curr_time = glfwGetTime();
+        pong->setTimeDelta(curr_time - time);
+        time = curr_time;
         
         glfwPollEvents();    
 
@@ -142,7 +156,7 @@ int main()
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        pong.draw();
+        pong->draw(window);
 
         glfwSwapBuffers(window);
 
