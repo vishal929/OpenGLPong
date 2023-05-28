@@ -3,10 +3,13 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <ctime>
 // Pong.cpp holds logic for building and running the pong game (AI, vertices, etc.)
 
 PongState::PongState()
 {
+    // seeding the random number generation
+    srand(time(0));
     // we start with default settings in the state
     ballSpeedMultiplier = 1;
     barSpeedMultiplier = 5;
@@ -29,6 +32,18 @@ PongState::PongState()
     leftBarPos = glm::vec2(-0.95f,0.2f);
     rightBarPos = glm::vec2(0.91f,0.2f);
     ballPos = glm::vec2(-0.02f,0.02f);
+
+    // randomize ball velocity vector direction and normalize to set the initial direction
+    ballVelocity = glm::vec2(0.0f, 0.0f);
+	ballVelocity.x = rand()/INT_MAX+1;
+	ballVelocity.y = rand() / INT_MAX + 1;
+
+	// setting default values in case of zeros
+	if (ballVelocity.x == 0.0f) ballVelocity.x = 0.02;
+	if (ballVelocity.y == 0.0f) ballVelocity.y = 0.02;
+
+    // normalizing
+    ballVelocity = glm::normalize(ballVelocity);
 
 	// indices to draw rectangles from triangle coordinates
 	indices = generateIndices();
@@ -200,6 +215,15 @@ unsigned int* PongState::generateIndices()
 	return indices;
 }
 
+void PongState::handleBallMovement()
+{
+   // update the balls state and account for collisions 
+    ballPos.x += ballVelocity.x * timeDelta * ballSpeedMultiplier;
+    ballPos.y += ballVelocity.y * timeDelta * ballSpeedMultiplier;
+
+    // check for collisions and reset ball if necessary (after scoring)
+}
+
 void PongState::handleMovement(GLFWwindow* window)
 {
     int state = glfwGetKey(window, GLFW_KEY_UP);
@@ -221,25 +245,4 @@ void PongState::setTimeDelta(float timeDelta)
     this->timeDelta = timeDelta;
 }
 
-/*
-void PongState::handle_movement(int key, int scancode, int action, int mods)
-{
-    // checking which key is pressed
-    if (key == GLFW_KEY_UP && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
-        // move the left bar up, we should not move it above the top of the screen!
-        leftBarPos.y = std::min(1.0f, leftBarPos.y + timeDelta * barSpeedMultiplier);
-    }
-    else if (key == GLFW_KEY_DOWN && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
-        // move the left bar down and the bottom of the bar should not go below the screen!
-        leftBarPos.y = std::max(-1.0f+barDims.y, leftBarPos.y - timeDelta * barSpeedMultiplier); 
-        printf("%f\n", leftBarPos.y);
-    }
-} */
 
-/*
-// outer callback handler to tie with glfw window
-void bar_outer_callback_handler(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	PongState* context = (PongState*) glfwGetWindowUserPointer(window);
-	// checking which key is pressed
-	context->move_bar_callback(key, scancode, action, mods);
-}*/

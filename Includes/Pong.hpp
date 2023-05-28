@@ -40,7 +40,7 @@ public:
 	// storing the positions of the top left coordinate of the bars and the ball (just x,y coordinates in normalized image coordinates)
 	glm::vec2 leftBarPos, rightBarPos, ballPos;
 
-	// need to store the velocity vector of the ball (this should be a unit vector)
+	// need to store the velocity vector of the ball (this should be a unit vector when not at rest)
 	glm::vec2 ballVelocity;
 	
 	// indices used to index the VBO in order to draw rectangles from triangular vertices
@@ -81,6 +81,9 @@ public:
 	
 	/* handle the movement of the player's bar based on up and down arrow keys*/
 	void handleMovement(GLFWwindow* window);
+	
+	/* handle the movement update for the ball and any possible collisions*/
+	void handleBallMovement();
 
 	/*
 		vertices in 2d representing a bar in pong in normalized coordinates
