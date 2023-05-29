@@ -105,6 +105,12 @@ public:
 		We return 4d coordinates where the z dimension is 0 and the last dimension is the color
 	*/
 	static float* generateBall();
+
+	/*
+		vertices in 2d representing a quad we can map a bitmap font to 
+		this way we can simulate a score by using bitmap resources
+	*/
+	static float* generateScoreBoard();
 	
 	/*
 		Indices of vertices to index in order to draw a rectangle from coordinates of a triangle given in a vertex buffer

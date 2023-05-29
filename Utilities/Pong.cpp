@@ -186,6 +186,14 @@ float* PongState::generateBall()
 	return vertices;
 }
 
+/*
+    generating a quad we can use a bitmap font on to simulate a score
+*/
+float* PongState::generateScoreBoard()
+{
+    //TODO 
+}
+
 unsigned int* PongState::generateIndices()
 {
 	unsigned int* indices = new unsigned int[6] {
