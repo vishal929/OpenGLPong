@@ -54,7 +54,7 @@ public:
 	
 	// float from 0 to 10 which represents a multiplier on the speed at which a player can move their bar (10 is 10x faster than 1, 0 is no movement)
 	float barSpeedMultiplier;
-
+	
 	// left player's score
 	int leftScore;
 
@@ -86,6 +86,12 @@ public:
 	
 	/* handle the movement update for the ball and any possible collisions*/
 	void handleBallMovement();
+
+	/* handle the movement of the AI to hit the ball*/
+	void handleAIMovement();
+	
+	/* Reset state of the game after a score*/
+	void resetGame();
 
 	/*
 		vertices in 2d representing a bar in pong in normalized coordinates

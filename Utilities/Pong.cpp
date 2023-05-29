@@ -10,7 +10,7 @@
 PongState::PongState()
 {
     // we start with default settings in the state
-    ballSpeedMultiplier = 0.7;
+    ballSpeedMultiplier = 1;
     barSpeedMultiplier = 5;
 
     // setting up shaders to use with our pong state
@@ -31,7 +31,7 @@ PongState::PongState()
     leftBarPos = glm::vec2(-0.95f,0.2f);
     rightBarPos = glm::vec2(0.91f,0.2f);
     ballPos = glm::vec2(-0.02f,0.02f);
-    ballLastPos = glm::vec2(0.0f, 0.0f);
+    ballLastPos = glm::vec2(-0.02f, 0.02f);
 
     // initializing the random distribution to sample from
     setupDistribution();
@@ -107,6 +107,7 @@ void PongState::draw(GLFWwindow* window)
 {
     // handling movement
     handleMovement(window);
+    handleAIMovement();
     handleBallMovement();
 
     leftBarShader->use();
@@ -163,15 +164,7 @@ float* PongState::generateBar()
 		  0.04f,0.0f,0.00f,1.0f, 0.0f, 0.0f // top right of rectangle
 
 	};
-    /*
-	float* vertices = new float[24]{
-		-0.95f,-0.20f,0.00f,1.0f,0.0f,0.0f, // bottom left of rectangle
-		 -0.91f,-0.20f, 0.00f, 1.0f, 0.0f, 0.0f,// bottom right of rectangle
-		-0.95f,0.20f,0.00f,1.0f, 0.0f, 0.0f, // top left of rectangle
-		 -0.91f,0.20f,0.00f,1.0f, 0.0f, 0.0f // top right of rectangle
-
-	};
-    */
+    
 	return vertices;
 }
 
@@ -189,15 +182,7 @@ float* PongState::generateBall()
 		 0.04f,0.0f,0.00f,1.0f, 0.0f, 0.0f // top right of rectangle
 
 	}; 
-    /*
-	float* vertices = new float[24]{
-		-0.02f,-0.02f,0.00f,1.0f,0.0f,0.0f, // bottom left of rectangle
-		 0.02f,-0.02f, 0.00f, 1.0f, 0.0f, 0.0f,// bottom right of rectangle
-		-0.02f,0.02f,0.00f,1.0f, 0.0f, 0.0f, // top left of rectangle
-		 0.02f,0.02f,0.00f,1.0f, 0.0f, 0.0f // top right of rectangle
-
-	};
-    */
+    
 	return vertices;
 }
 
@@ -213,6 +198,7 @@ unsigned int* PongState::generateIndices()
 void PongState::handleBallMovement()
 {
    // update the balls state and account for collisions 
+    // each collision will make the ball faster in the collision component of the velocity!
     ballLastPos.x = ballPos.x;
     ballLastPos.y = ballPos.y;
 
@@ -225,13 +211,13 @@ void PongState::handleBallMovement()
     // for collisions, we reset the position to the boundary and reverse the component of the velocity based on the collision
     if (ballPos.x <= -1.0f) {
         // goal state! this is a goal for the right player (hit the left wall)
-        ballPos.x = -1.0f;
-        ballVelocity.x *= -1;
+        resetGame();
+        return;
     }
     else if (ballPos.x + ballDims.x >= 1.0f) {
         // goal state! this is a goal for the left player (hit the right wall)
-        ballPos.x = 1.0f - ballDims.x;
-        ballVelocity.x *= -1;
+        resetGame();
+        return;
     }
     else if (ballPos.y - ballDims.y <= -1.0f) {
         // hit the bottom wall
@@ -260,7 +246,16 @@ void PongState::handleBallMovement()
         else if (ballLastPos.y > leftBarPos.y - barDims.y && ballLastPos.x > leftBarPos.x + barDims.x) {
             // collision with the side of the bar
             ballPos.x = leftBarPos.x + barDims.x;
+            
+            // we adjust the y velocity based on where on the paddle the ball collides
+            float hitDist = (leftBarPos.y - barDims.y / 2) - ballPos.y;
+            // getting a float between 0 and 1
+            hitDist /= barDims.y / 2;
+            ballVelocity.y = ballVelocity.x * hitDist;
+
             ballVelocity.x *= -1;
+            
+            
         }
         else if (ballLastPos.y < leftBarPos.y - barDims.y && ballLastPos.x > leftBarPos.x){
             // collision with the bottom of the bar
@@ -305,7 +300,16 @@ void PongState::handleBallMovement()
         else if (modifiedLastBallPos.y > rightBarPos.y - barDims.y && modifiedLastBallPos.x < rightBarPos.x ) {
             // collision with the side of the bar
             ballPos.x = rightBarPos.x - ballDims.x;
+
+            // we adjust the y velocity based on where on the paddle the ball collides
+            float hitDist = (rightBarPos.y - barDims.y / 2) - ballPos.y;
+            // getting a float between 0 and 1 and negating since we are on the opposite side
+            hitDist /=  - barDims.y / 2;
+            ballVelocity.y = ballVelocity.x * hitDist;
+
             ballVelocity.x *= -1;
+
+            
         }
         else if (modifiedLastBallPos.y < rightBarPos.y - barDims.y && modifiedLastBallPos.x > rightBarPos.x){
             // collision with the bottom of the bar
@@ -330,6 +334,44 @@ void PongState::handleBallMovement()
     
 }
 
+void PongState::handleAIMovement()
+{
+    // we just need to move the bar up or down just the right amount to hit the ball based on its trajectory
+    // this AI is simple, it will not take into account the complex future (ball bouncing off walls etc.)
+    // this AI should not have access to the balls velocity vector, but it can "observe" changes in position of the ball    
+    glm::vec2 ballTrajectory = ballPos - ballLastPos;
+
+    // how many timesteps will it take for the ball approximately to reach the right bar?
+    float remainingDistance = rightBarPos.x - (ballPos.x + ballDims.x);
+    float numTimesteps = remainingDistance / (ballTrajectory.x / timeDelta);
+    
+    // will we be in a good position for the bar to collide with the ball?
+    float estimatedY = ballPos.y + (ballTrajectory.y * numTimesteps);
+
+    if (estimatedY > rightBarPos.y) {
+        // we move up
+        rightBarPos.y = std::min(1.0f, rightBarPos.y + timeDelta * barSpeedMultiplier);
+    }
+    else if (estimatedY < rightBarPos.y - barDims.y) {
+        // we move down
+        rightBarPos.y = std::max(-1.0f+barDims.y, rightBarPos.y - timeDelta * barSpeedMultiplier);
+    }
+
+
+}
+
+void PongState::resetGame() {
+    // initializing positions as the top left vertex of each object with even distances
+    leftBarPos = glm::vec2(-0.95f,0.2f);
+    rightBarPos = glm::vec2(0.91f,0.2f);
+    ballPos = glm::vec2(-0.02f,0.02f);
+    ballLastPos = glm::vec2(-0.02f, 0.02f);
+    
+    // reset ball velocity
+    setBallInitialDirection();
+
+}
+
 void PongState::handleMovement(GLFWwindow* window)
 {
     int state = glfwGetKey(window, GLFW_KEY_UP);
@@ -338,7 +380,7 @@ void PongState::handleMovement(GLFWwindow* window)
         leftBarPos.y = std::min(1.0f, leftBarPos.y + timeDelta * barSpeedMultiplier);
 
         // for debuggging without AI we will move the right bar also
-        rightBarPos.y = std::min(1.0f, rightBarPos.y + timeDelta * barSpeedMultiplier);
+        //rightBarPos.y = std::min(1.0f, rightBarPos.y + timeDelta * barSpeedMultiplier);
         return;
     }
 
@@ -348,7 +390,7 @@ void PongState::handleMovement(GLFWwindow* window)
         leftBarPos.y = std::max(-1.0f+barDims.y, leftBarPos.y - timeDelta * barSpeedMultiplier); 
 
         // for debugging without AI we will move the right bar also
-        rightBarPos.y = std::max(-1.0f+barDims.y, rightBarPos.y - timeDelta * barSpeedMultiplier); 
+        //rightBarPos.y = std::max(-1.0f+barDims.y, rightBarPos.y - timeDelta * barSpeedMultiplier); 
     }
 }
 
@@ -359,15 +401,8 @@ void PongState::setTimeDelta(float timeDelta)
 
 void PongState::setBallInitialDirection()
 {
-    ballVelocity.x = sampleRandom();
-    ballVelocity.y = sampleRandom();
-
-	// setting default values in case of zeros (so that the ball is not at rest and does not bounce straight up)
-	if (ballVelocity.x == 0.0f) ballVelocity.x = 0.02;
-	if (ballVelocity.y == 0.0f) ballVelocity.y = 0.02;
-
-    // normalizing
-    ballVelocity = glm::normalize(ballVelocity);
+    ballVelocity.x = ballSpeedMultiplier;
+    ballVelocity.y = ballSpeedMultiplier * glm::cos(sampleRandom());
 
     // determining sign randomly	
     if (sampleRandom() > 0.5) {
@@ -377,7 +412,7 @@ void PongState::setBallInitialDirection()
         ballVelocity.y *= -1;
     }
     
-    printf("init ball velocity: %f ----- %f \n", ballVelocity.x, ballVelocity.y);
+    //printf("init ball velocity: %f ----- %f \n", ballVelocity.x, ballVelocity.y);
 }
 
 
