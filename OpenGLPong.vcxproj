@@ -144,6 +144,9 @@
   <ItemGroup>
     <ResourceCompile Include="OpenGLPong.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\Downloads\characters.bmp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

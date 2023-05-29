@@ -122,4 +122,9 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\Downloads\characters.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
