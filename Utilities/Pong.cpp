@@ -4,14 +4,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <ctime>
+#include <random>
 // Pong.cpp holds logic for building and running the pong game (AI, vertices, etc.)
 
 PongState::PongState()
 {
-    // seeding the random number generation
-    srand(time(0));
     // we start with default settings in the state
-    ballSpeedMultiplier = 1;
+    ballSpeedMultiplier = 0.7;
     barSpeedMultiplier = 5;
 
     // setting up shaders to use with our pong state
@@ -32,18 +31,13 @@ PongState::PongState()
     leftBarPos = glm::vec2(-0.95f,0.2f);
     rightBarPos = glm::vec2(0.91f,0.2f);
     ballPos = glm::vec2(-0.02f,0.02f);
+    ballLastPos = glm::vec2(0.0f, 0.0f);
+
+    // initializing the random distribution to sample from
+    setupDistribution();
 
     // randomize ball velocity vector direction and normalize to set the initial direction
-    ballVelocity = glm::vec2(0.0f, 0.0f);
-	ballVelocity.x = rand()/INT_MAX+1;
-	ballVelocity.y = rand() / INT_MAX + 1;
-
-	// setting default values in case of zeros
-	if (ballVelocity.x == 0.0f) ballVelocity.x = 0.02;
-	if (ballVelocity.y == 0.0f) ballVelocity.y = 0.02;
-
-    // normalizing
-    ballVelocity = glm::normalize(ballVelocity);
+    setBallInitialDirection();
 
 	// indices to draw rectangles from triangle coordinates
 	indices = generateIndices();
@@ -113,6 +107,7 @@ void PongState::draw(GLFWwindow* window)
 {
     // handling movement
     handleMovement(window);
+    handleBallMovement();
 
     leftBarShader->use();
     // sending uniform for translation
@@ -218,10 +213,121 @@ unsigned int* PongState::generateIndices()
 void PongState::handleBallMovement()
 {
    // update the balls state and account for collisions 
+    ballLastPos.x = ballPos.x;
+    ballLastPos.y = ballPos.y;
+
     ballPos.x += ballVelocity.x * timeDelta * ballSpeedMultiplier;
     ballPos.y += ballVelocity.y * timeDelta * ballSpeedMultiplier;
 
     // check for collisions and reset ball if necessary (after scoring)
+
+    // checking first for collisions with the boundary (recall that ballPos is the position of thet top left of the ball)
+    // for collisions, we reset the position to the boundary and reverse the component of the velocity based on the collision
+    if (ballPos.x <= -1.0f) {
+        // goal state! this is a goal for the right player (hit the left wall)
+        ballPos.x = -1.0f;
+        ballVelocity.x *= -1;
+    }
+    else if (ballPos.x + ballDims.x >= 1.0f) {
+        // goal state! this is a goal for the left player (hit the right wall)
+        ballPos.x = 1.0f - ballDims.x;
+        ballVelocity.x *= -1;
+    }
+    else if (ballPos.y - ballDims.y <= -1.0f) {
+        // hit the bottom wall
+        ballPos.y = -1.0f + ballDims.y;
+        ballVelocity.y *= -1;
+    }
+    else if (ballPos.y >= 1.0f) {
+        // hit the top wall
+        ballPos.y = 1.0f;
+        ballVelocity.y *= -1;
+    }
+
+    // check for collision with any bars
+
+    // check collision with left bar
+    if ((ballPos.x >= leftBarPos.x && ballPos.x <= leftBarPos.x + barDims.x) &&
+         (ballPos.y >= leftBarPos.y-barDims.y && ballPos.y  <= leftBarPos.y)) {
+            
+        // we have a collision with the left bar, we have to determine which components to reverse
+        // we can determine this by checking the last position of the ball (which must be outside the bounding box) 
+        if (ballLastPos.y > leftBarPos.y && ballLastPos.x < leftBarPos.x + barDims.x) {
+            // collision with the top of the bar
+            ballPos.y = leftBarPos.y;
+            ballVelocity.y *= -1;
+        }
+        else if (ballLastPos.y > leftBarPos.y - barDims.y && ballLastPos.x > leftBarPos.x + barDims.x) {
+            // collision with the side of the bar
+            ballPos.x = leftBarPos.x + barDims.x;
+            ballVelocity.x *= -1;
+        }
+        else if (ballLastPos.y < leftBarPos.y - barDims.y && ballLastPos.x > leftBarPos.x){
+            // collision with the bottom of the bar
+            ballPos.y = leftBarPos.y - barDims.y;
+            ballVelocity.y *= -1;
+        }
+        else if (ballLastPos.y > leftBarPos.y && ballLastPos.x > leftBarPos.x + barDims.x) {
+            // top right corner collision
+            ballPos.y = leftBarPos.y;
+            ballPos.x = leftBarPos.x + barDims.x;
+            ballVelocity *= -1;
+        }
+        else if (ballLastPos.y < leftBarPos.y - barDims.y && ballLastPos.x > leftBarPos.x + barDims.x) {
+            // bottom right corner collision
+            ballPos.x = leftBarPos.x + barDims.x;
+            ballPos.y = leftBarPos.y - barDims.y;
+            ballVelocity *= -1;
+        }
+        
+    }
+
+    // check collision with right bar
+
+    // need to move the ball slightly, since we only record the top left of the ball
+    glm::vec2 modifiedBallPos = glm::vec2(0.0f, 0.0f);
+    modifiedBallPos.x = ballPos.x + ballDims.x;
+    modifiedBallPos.y = ballPos.y;
+    if ((modifiedBallPos.x >= rightBarPos.x && modifiedBallPos.x <= rightBarPos.x + barDims.x) &&
+         (modifiedBallPos.y >= rightBarPos.y-barDims.y && modifiedBallPos.y  <= rightBarPos.y)) {
+        
+        // need to move the ball slightly for right collision, since we only record the top left of the ball
+        glm::vec2 modifiedLastBallPos = glm::vec2(0.0f, 0.0f);
+        modifiedLastBallPos.x = ballLastPos.x + ballDims.x;
+        modifiedLastBallPos.y = ballLastPos.y;
+        // we have a collision with the right bar, we have to determine which components to reverse
+        // we can determine this by checking the last position of the ball (which must be outside the bounding box) 
+        if (modifiedLastBallPos.y > rightBarPos.y && modifiedLastBallPos.x > rightBarPos.x ) {
+            // collision with the top of the bar
+            ballPos.y = rightBarPos.y;
+            ballVelocity.y *= -1;
+        }
+        else if (modifiedLastBallPos.y > rightBarPos.y - barDims.y && modifiedLastBallPos.x < rightBarPos.x ) {
+            // collision with the side of the bar
+            ballPos.x = rightBarPos.x - ballDims.x;
+            ballVelocity.x *= -1;
+        }
+        else if (modifiedLastBallPos.y < rightBarPos.y - barDims.y && modifiedLastBallPos.x > rightBarPos.x){
+            // collision with the bottom of the bar
+            ballPos.y = rightBarPos.y - barDims.y;
+            ballVelocity.y *= -1;
+        }
+        else if (modifiedLastBallPos.y > rightBarPos.y && modifiedLastBallPos.x < rightBarPos.x) {
+            // top left corner collision
+            ballPos.y = rightBarPos.y;
+            ballPos.x = rightBarPos.x - ballDims.x;
+            ballVelocity *= -1;
+        }
+        else if (modifiedLastBallPos.y < rightBarPos.y - barDims.y && modifiedLastBallPos.x < rightBarPos.x) {
+            // bottom left corner collision
+            ballPos.x = rightBarPos.x - ballDims.x;
+            ballPos.y = rightBarPos.y - barDims.y;
+            ballVelocity *= -1;
+        }
+        
+    } 
+    
+    
 }
 
 void PongState::handleMovement(GLFWwindow* window)
@@ -230,6 +336,9 @@ void PongState::handleMovement(GLFWwindow* window)
     if (state != GLFW_RELEASE) {
         // move the left bar up, we should not move it above the top of the screen!
         leftBarPos.y = std::min(1.0f, leftBarPos.y + timeDelta * barSpeedMultiplier);
+
+        // for debuggging without AI we will move the right bar also
+        rightBarPos.y = std::min(1.0f, rightBarPos.y + timeDelta * barSpeedMultiplier);
         return;
     }
 
@@ -237,12 +346,38 @@ void PongState::handleMovement(GLFWwindow* window)
     if (state != GLFW_RELEASE) {
         // move the left bar down and the bottom of the bar should not go below the screen!
         leftBarPos.y = std::max(-1.0f+barDims.y, leftBarPos.y - timeDelta * barSpeedMultiplier); 
+
+        // for debugging without AI we will move the right bar also
+        rightBarPos.y = std::max(-1.0f+barDims.y, rightBarPos.y - timeDelta * barSpeedMultiplier); 
     }
 }
 
 void PongState::setTimeDelta(float timeDelta)
 {
     this->timeDelta = timeDelta;
+}
+
+void PongState::setBallInitialDirection()
+{
+    ballVelocity.x = sampleRandom();
+    ballVelocity.y = sampleRandom();
+
+	// setting default values in case of zeros (so that the ball is not at rest and does not bounce straight up)
+	if (ballVelocity.x == 0.0f) ballVelocity.x = 0.02;
+	if (ballVelocity.y == 0.0f) ballVelocity.y = 0.02;
+
+    // normalizing
+    ballVelocity = glm::normalize(ballVelocity);
+
+    // determining sign randomly	
+    if (sampleRandom() > 0.5) {
+        ballVelocity.x *= -1;
+    }
+    if (sampleRandom() > 0.5) {
+        ballVelocity.y *= -1;
+    }
+    
+    printf("init ball velocity: %f ----- %f \n", ballVelocity.x, ballVelocity.y);
 }
 
 

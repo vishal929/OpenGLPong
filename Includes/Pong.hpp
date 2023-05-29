@@ -7,6 +7,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <random>
 
 
 /*
@@ -38,11 +39,12 @@ public:
 
 
 	// storing the positions of the top left coordinate of the bars and the ball (just x,y coordinates in normalized image coordinates)
-	glm::vec2 leftBarPos, rightBarPos, ballPos;
+	// we need the last position of the ball to help with collision detection
+	glm::vec2 leftBarPos, rightBarPos, ballPos, ballLastPos;
 
 	// need to store the velocity vector of the ball (this should be a unit vector when not at rest)
 	glm::vec2 ballVelocity;
-	
+
 	// indices used to index the VBO in order to draw rectangles from triangular vertices
 	unsigned int* indices;
 	int indicesLength;
@@ -108,8 +110,33 @@ public:
 	*/
 	void setTimeDelta(float newDelta);
 
+	/*
+		Helper function which sets the ball's initial velocity vector to a random direction
+	*/
+	void setBallInitialDirection();
 
+	/*
+		Setup random distributions to sample from
+	*/
+	void setupDistribution() {
+		dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
+	}
 	
+	/*
+		Sampling a random number from our distribution between 0 and 1
+	*/
+	float sampleRandom() {
+		return dist(generator);
+	}
+
+private:
+	// random generator to use for random intialization of a ball direction
+	std::default_random_engine generator;
+
+	// uniform distribution between 0 and 1 for initializing the random direction of the ball
+	std::uniform_real_distribution<float> dist;
+	
+		
 
 };
 
