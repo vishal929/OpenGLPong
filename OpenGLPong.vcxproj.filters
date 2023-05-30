@@ -126,5 +126,14 @@
     <Image Include="..\..\..\Downloads\characters.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Textures\characters.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Vertex_Shaders\matrix_shader.vs" />
+    <None Include="Vertex_Shaders\color_shader.vs" />
+    <None Include="Fragment_Shaders\color_shader.fs" />
+    <None Include="Fragment_Shaders\texture_shader.fs" />
   </ItemGroup>
 </Project>
