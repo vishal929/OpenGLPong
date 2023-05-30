@@ -17,4 +17,6 @@ To run the game, just run Pong.exe included at the root of the project!
 
 This application was developed and compiled on a Windows machine on an intel processor.
 
+The AI is currently simple, but effective and everything for single player is working!
+
 Planned features include multiplayer support and viewing replays.
