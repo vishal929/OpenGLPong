@@ -672,7 +672,8 @@ void PongState::setTimeDelta(float timeDelta)
 void PongState::setGameParameters(float ballSpeed, float barSpeed, int maxScore)
 {
     this->maxScore = maxScore;
-    this->ballSpeedMultiplier = ballSpeed / 1.3f;
+    // logarithmic scaling so that the ball doesnt get obscenely fast
+    this->ballSpeedMultiplier = log(1+ballSpeed)/log(3.3) ;
     this->barSpeedMultiplier = barSpeed;
 }
 
