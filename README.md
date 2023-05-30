@@ -1,7 +1,16 @@
 ## OPENGL Pong Project
 
-Hello! I wanted to get some experience with using a third party library in C++. 
-This project is to create a pong game in C++ using the OpenGL library.
+Hello! I wanted to get some experience with using third party libraries in C++. 
+This project is to create a pong game in C++ using the OpenGL library, which means dealing directly with the graphics pipeline 
+and matrix transformations!
+
+In particular, I use the following libraries:
+* GLFW openGL window manager
+* glad openGL function wrapper
+* glm math library
+* stb_image for image loading
+* dear imgui for user interface options
+
 
 All the source code is included here, as well as visual studio settings for easy importability and building
 To run the game, just run Pong.exe included at the root of the project!
