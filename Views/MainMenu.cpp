@@ -9,26 +9,30 @@
 */
 
 #include "imgui.h"
+#include "../Includes/MainMenu.hpp"
 
 // builds the UI view for our main menu
-void buildMenu() {
-	if (ImGui::Begin("Menu",false,ImGuiWindowFlags_AlwaysAutoResize)) {
+void buildMenu(int* gameState, float* setBallSpeed, float* setBarSpeed, int* setMaxScore) {
+	// only build the menu if we are in the menu state
+	if (!*gameState) {
+		ImGui::Begin("Menu");
 
 		if (ImGui::Button("Single Player")) {
 			// transition state to the single player pong game
+			*gameState = 1;
 		}
-
-		if (ImGui::Button("Multi-Player")) {
+		else if (ImGui::Button("Multi-Player")) {
 			// transition state to the multiplayer connection window
+			*gameState = 2;
 		}
 
-		float ballSpeed = 1.0f;
-		float barSpeed = 1.0f;
-		int maxScore = 5;
-		ImGui::SliderFloat("ball speed:", &ballSpeed, 0.0f, 10.0f, "%.2f");
-		ImGui::SliderFloat("paddle speed:", &barSpeed, 0.0f, 10.0f, "%.2f");
-		ImGui::SliderInt("maximum score:", &maxScore, 1, 20);
-		
+		//float ballSpeed = 1.0f;
+		//float barSpeed = 1.0f;
+		//int maxScore = 5;
+		ImGui::SliderFloat("ball speed:", setBallSpeed, 0.0f, 10.0f, "%.2f");
+		ImGui::SliderFloat("paddle speed:", setBarSpeed, 0.0f, 10.0f, "%.2f");
+		ImGui::SliderInt("maximum score:", setMaxScore, 1, 20);
+
+		ImGui::End();
 	}
-	ImGui::End();
 }

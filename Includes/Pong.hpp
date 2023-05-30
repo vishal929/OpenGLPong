@@ -108,6 +108,11 @@ public:
 	*/
 	int gameStatus();
 	
+	/*
+		Set some values which we need between games
+	*/
+	void setGameParameters(float ballSpeed, float barSpeed, int maxScore);
+	
 	/* frees memory and performs cleanup*/
 	void destroyState();
 	

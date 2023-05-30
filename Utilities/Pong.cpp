@@ -295,7 +295,7 @@ void PongState::draw(GLFWwindow* window)
     }
     else {
         rightScoreLeftDigit = rightScore / 10;
-        rightScoreLeftDigit = rightScore % 10;
+        rightScoreRightDigit = rightScore % 10;
     }
     rightScoreFirstDigitShader->use();
     // sending uniform for translation
@@ -667,6 +667,13 @@ void PongState::handleMovement(GLFWwindow* window)
 void PongState::setTimeDelta(float timeDelta)
 {
     this->timeDelta = timeDelta;
+}
+
+void PongState::setGameParameters(float ballSpeed, float barSpeed, int maxScore)
+{
+    this->maxScore = maxScore;
+    this->ballSpeedMultiplier = ballSpeed / 1.3f;
+    this->barSpeedMultiplier = barSpeed;
 }
 
 void PongState::setBallInitialDirection()

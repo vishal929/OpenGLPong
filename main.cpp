@@ -79,6 +79,21 @@ int main()
 
     bool show_demo_window = false;
     bool show_another_window = false;
+    /*
+        gameState=0 -> we are in the menu
+        gameState=1 -> we are in  singleplayer
+        gameState=2 -> we are in multiplayer
+    */
+    int gameState = 0;
+    /*
+        gameStatus=0 -> in game
+        gameStatus= 1 -> left player won
+        gameStatus = 1 -> right player won
+    */
+    int gameStatus = 0;
+    float ballSpeed = 1.0f;
+    float barSpeed = 5;
+    int maxScore = 10;
     ImVec4 clear_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     // setup our pong state
@@ -91,14 +106,11 @@ int main()
     //glfwSetKeyCallback(window, bar_outer_callback_handler);
 
     // keeping track of time
-    double time = 0;
+    double time = -1;
 
     //render loop
     while(!glfwWindowShouldClose(window)){
-        // handling time based update of state
-        double curr_time = glfwGetTime();
-        pong->setTimeDelta(curr_time - time);
-        time = curr_time;
+        
         
         glfwPollEvents();    
 
@@ -108,7 +120,8 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        
+
+        buildMenu(&gameState, &ballSpeed, &barSpeed, &maxScore);
         /*
         buildMenu();
 
@@ -154,30 +167,57 @@ int main()
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
-        int gameStatus = pong->gameStatus();
-        if (gameStatus == 0) {
-            pong->draw(window);
-        }
-        else if (gameStatus == 1) {
-            ImGui::Begin("You have Won! :)");
-            if (ImGui::Button("Replay")) {
-                pong->resetGame(true);
-            }
-            else if (ImGui::Button("Return to Menu")) {
+        if (gameState != 0) {
+            // then we are in the game
+            
 
-            }
-            ImGui::End();
-        }
-        else {
-            ImGui::Begin("You have Lost! :(");
-            if (ImGui::Button("Replay")) {
-                pong->resetGame(true);
-            }
-            else if (ImGui::Button("Return to Menu")) {
+            // set the values for the gameplay
+            pong->setGameParameters(ballSpeed, barSpeed, maxScore);
+            //printf("ball speed: %f ---- barSpeed: %f ---- maxScore: %d \n", ballSpeed, barSpeed, maxScore);
 
-            }
-            ImGui::End(); 
+            
+
+			if (gameStatus == 0) {
+				// handling time based update of state
+				double curr_time = glfwGetTime();
+				if (time == -1) {
+                    pong->resetGame(true);
+					time = curr_time-0.00001;
+				}
+				pong->setTimeDelta(curr_time - time);
+				time = curr_time;
+				pong->draw(window);
+			}
+			else if (gameStatus == 1) {
+                time = -1;
+				ImGui::Begin("You have Won! :)");
+				if (ImGui::Button("Replay")) {
+				    pong->resetGame(true);
+				}
+				else if (ImGui::Button("Return to Menu")) {
+                    // set the menu state
+                    pong->resetGame(true);
+                    gameState = 0;
+				}
+				ImGui::End();
+			}
+			else {
+                time = -1;
+				ImGui::Begin("You have Lost! :(");
+				if (ImGui::Button("Replay")) {
+                    pong->resetGame(true);
+				}
+				else if (ImGui::Button("Return to Menu")) {
+                    // set the menu state
+                    pong->resetGame(true);
+                    gameState = 0;
+				}
+				ImGui::End(); 
+			}
+
+            gameStatus = pong->gameStatus();
         }
+        
 
         ImGui::Render();
 
