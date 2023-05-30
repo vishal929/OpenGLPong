@@ -100,6 +100,13 @@ public:
 	
 	/* function which draws our objects. Should be called inside the rendering loop*/
 	void draw(GLFWwindow* window);
+
+	/*Function which returns game status
+	  If 0, then the game is still in progress
+	  If 1, then the left player has won
+	  If 2, then the right player has won
+	*/
+	int gameStatus();
 	
 	/* frees memory and performs cleanup*/
 	void destroyState();
@@ -116,8 +123,10 @@ public:
 	/* handle the movement of the AI to hit the ball*/
 	void handleAIMovement();
 	
-	/* Reset state of the game after a score*/
-	void resetGame();
+	/* Reset state of the game after a score
+	   If totalReset is true, then we restart the game from scratch (zero score on both sides)
+	*/
+	void resetGame(bool totalReset);
 
 	/*
 		vertices in 2d representing a bar in pong in normalized coordinates

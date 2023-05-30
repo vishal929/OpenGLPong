@@ -7,6 +7,11 @@
 #include <random>
 #include "../Includes/stb_image.h"
 #include <iostream>
+
+// imgui for a UI interface I can use
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 // Pong.cpp holds logic for building and running the pong game (AI, vertices, etc.)
 
 PongState::PongState()
@@ -14,6 +19,8 @@ PongState::PongState()
     // initializing the score
     leftScore = 0;
     rightScore = 0;
+
+    maxScore = 3;
 
     // we start with default settings in the state
     ballSpeedMultiplier = 1;
@@ -349,8 +356,7 @@ void PongState::draw(GLFWwindow* window)
 
 
     if (isGoal) {
-        // check for end of game status, if not end of game then reset the board
-        resetGame();
+            resetGame(false);
     }
 }
 
@@ -415,6 +421,17 @@ float* PongState::generateScoreBoard(int digit)
 		 0.1f,0.0f,0.00f,1.0f, 1.0f, 1.0f, (digit+1)*0.0627f, 0.75f+ 0.0625f // top right of rectangle
 	};
     return vertices;
+}
+
+int PongState::gameStatus()
+{
+    if (leftScore == maxScore) {
+        return 1;
+    }
+    else if (rightScore == maxScore) {
+        return 2;
+    } 
+    return 0;
 }
 
 /* adjusts the scoreboard buffer to account for a new digit*/
@@ -607,12 +624,18 @@ void PongState::handleAIMovement()
 
 }
 
-void PongState::resetGame() {
+void PongState::resetGame(bool totalReset) {
     // initializing positions as the top left vertex of each object with even distances
     leftBarPos = glm::vec2(-0.95f,0.2f);
     rightBarPos = glm::vec2(0.91f,0.2f);
     ballPos = glm::vec2(-0.02f,0.02f);
     ballLastPos = glm::vec2(-0.02f, 0.02f);
+
+    if (totalReset) {
+        // reset the score also
+        leftScore = 0;
+        rightScore = 0;
+    }
     
     // reset ball velocity
     setBallInitialDirection();

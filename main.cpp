@@ -105,11 +105,11 @@ int main()
         
 
         // Start the Dear ImGui frame
-        /*
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
+        
+        /*
         buildMenu();
 
         if (show_demo_window)
@@ -148,15 +148,40 @@ int main()
         }
 
         // Rendering
-        ImGui::Render();
         */
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
-        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        pong->draw(window);
+        int gameStatus = pong->gameStatus();
+        if (gameStatus == 0) {
+            pong->draw(window);
+        }
+        else if (gameStatus == 1) {
+            ImGui::Begin("You have Won! :)");
+            if (ImGui::Button("Replay")) {
+                pong->resetGame(true);
+            }
+            else if (ImGui::Button("Return to Menu")) {
+
+            }
+            ImGui::End();
+        }
+        else {
+            ImGui::Begin("You have Lost! :(");
+            if (ImGui::Button("Replay")) {
+                pong->resetGame(true);
+            }
+            else if (ImGui::Button("Return to Menu")) {
+
+            }
+            ImGui::End(); 
+        }
+
+        ImGui::Render();
+
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
 
