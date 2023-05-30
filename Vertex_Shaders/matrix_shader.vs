@@ -7,10 +7,11 @@ out vec3 ourColor;
 out vec2 TexCoord;
 
 uniform mat4 transformation;
+uniform vec2 textureShift;
 
 void main()
 {
     gl_Position = transformation * vec4(aPos, 1.0);
     ourColor = aColor;
-    TexCoord = aTexCoord;
+    TexCoord = aTexCoord + textureShift;
 }

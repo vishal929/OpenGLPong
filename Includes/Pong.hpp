@@ -31,16 +31,35 @@ public:
 	unsigned int ballVAO, ballVBO, ballEBO;
 	int ballLength;
 
+	// objects to render scoreboards in pong
+	float* leftScoreFirstDigitVertices; float* leftScoreSecondDigitVertices;
+	unsigned int leftScoreFirstDigitVAO, leftScoreFirstDigitVBO, leftScoreFirstDigitEBO;
+	unsigned int leftScoreSecondDigitVAO, leftScoreSecondDigitVBO, leftScoreSecondDigitEBO;
+	int leftScoreLength;
+
+	float* rightScoreFirstDigitVertices; float* rightScoreSecondDigitVertices;
+	unsigned int rightScoreFirstDigitVAO, rightScoreFirstDigitVBO, rightScoreFirstDigitEBO;
+	unsigned int rightScoreSecondDigitVAO, rightScoreSecondDigitVBO, rightScoreSecondDigitEBO;
+	int rightScoreLength;
+
+	unsigned int scoreTexture;
+
 	// bar object has a specific height and width (x component is width, y component is height)
 	glm::vec2 barDims;
 
 	// ball object has a specific height and width
 	glm::vec2 ballDims;
 
+	// each digit of the scoreboard has a specific height and width
+	glm::vec2 scoreDigitDims;
+
 
 	// storing the positions of the top left coordinate of the bars and the ball (just x,y coordinates in normalized image coordinates)
 	// we need the last position of the ball to help with collision detection
 	glm::vec2 leftBarPos, rightBarPos, ballPos, ballLastPos;
+
+	// need to score the top left coordinate of the left digit of the scoreboards for each player
+	glm::vec2 leftScorePos, rightScorePos;
 
 	// need to store the velocity vector of the ball (this should be a unit vector when not at rest)
 	glm::vec2 ballVelocity;
@@ -71,6 +90,10 @@ public:
 	Shader* leftBarShader;
 	Shader* rightBarShader;
 	Shader* ballShader;
+	Shader* leftScoreFirstDigitShader;
+	Shader* leftScoreSecondDigitShader;
+	Shader* rightScoreFirstDigitShader;
+	Shader* rightScoreSecondDigitShader;
 	
 	/* constructor that initializes vertices and performs opengl setup operations*/
 	PongState();
@@ -84,8 +107,11 @@ public:
 	/* handle the movement of the player's bar based on up and down arrow keys*/
 	void handleMovement(GLFWwindow* window);
 	
-	/* handle the movement update for the ball and any possible collisions*/
-	void handleBallMovement();
+	/* handle the movement update for the ball and any possible collisions
+	   We return 1 if there is any goal (to indicate that we need to reset or check for end of game status)
+	   We return 0 if there is no goal -> the game keeps going
+	*/
+	int handleBallMovement();
 
 	/* handle the movement of the AI to hit the ball*/
 	void handleAIMovement();
@@ -109,8 +135,14 @@ public:
 	/*
 		vertices in 2d representing a quad we can map a bitmap font to 
 		this way we can simulate a score by using bitmap resources
+		digit is a value from 0 to 9 from which we generate texture coordinates to the corresponding digit in the bitmap font
 	*/
-	static float* generateScoreBoard();
+	static float* generateScoreBoard(int digit);
+	
+	/*
+		adjusts the texture coordinates in the current scoreboard buffer to account for the new score	
+	*/
+	static void adjustScoreBoard(float* scoreBoard, int digit);
 	
 	/*
 		Indices of vertices to index in order to draw a rectangle from coordinates of a triangle given in a vertex buffer

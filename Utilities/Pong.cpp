@@ -5,10 +5,16 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <ctime>
 #include <random>
+#include "../Includes/stb_image.h"
+#include <iostream>
 // Pong.cpp holds logic for building and running the pong game (AI, vertices, etc.)
 
 PongState::PongState()
 {
+    // initializing the score
+    leftScore = 0;
+    rightScore = 0;
+
     // we start with default settings in the state
     ballSpeedMultiplier = 1;
     barSpeedMultiplier = 5;
@@ -17,15 +23,29 @@ PongState::PongState()
     leftBarShader = new Shader("Vertex_Shaders/color_shader.vs", "Fragment_Shaders/color_shader.fs");
     rightBarShader = new Shader("Vertex_Shaders/color_shader.vs", "Fragment_Shaders/color_shader.fs");
     ballShader = new Shader("Vertex_Shaders/color_shader.vs", "Fragment_Shaders/color_shader.fs");    
+    leftScoreFirstDigitShader = new Shader("Vertex_Shaders/matrix_shader.vs", "Fragment_Shaders/texture_shader.fs");
+    leftScoreSecondDigitShader = new Shader("Vertex_Shaders/matrix_shader.vs", "Fragment_Shaders/texture_shader.fs");
+    rightScoreFirstDigitShader = new Shader("Vertex_Shaders/matrix_shader.vs", "Fragment_Shaders/texture_shader.fs");
+    rightScoreSecondDigitShader = new Shader("Vertex_Shaders/matrix_shader.vs", "Fragment_Shaders/texture_shader.fs");
 
 	// generating vertices
-	leftBarLength = 24, rightBarLength = 24, ballLength = 24;
+	leftBarLength = 24, rightBarLength = 24, ballLength = 24, leftScoreLength=32, rightScoreLength=32;
 	leftBarVertices = generateBar();
 	rightBarVertices = generateBar();
 	ballVertices = generateBall();
 
     barDims = glm::vec2(leftBarVertices[6]-leftBarVertices[0],leftBarVertices[2*6+1]-leftBarVertices[1]);
     ballDims = glm::vec2(ballVertices[6]-ballVertices[0],ballVertices[2*6+1]-ballVertices[1]);
+    
+    // scores start at 0
+    leftScoreFirstDigitVertices = generateScoreBoard(0);
+    leftScoreSecondDigitVertices = generateScoreBoard(0);
+    rightScoreFirstDigitVertices = generateScoreBoard(0);
+    rightScoreSecondDigitVertices = generateScoreBoard(0);
+
+    scoreDigitDims = glm::vec2(leftScoreFirstDigitVertices[8] - leftScoreFirstDigitVertices[0], 
+                                leftScoreFirstDigitVertices[2 * 8 + 1] - leftScoreFirstDigitVertices[1]);
+
 
     // initializing positions as the top left vertex of each object with even distances
     leftBarPos = glm::vec2(-0.95f,0.2f);
@@ -33,10 +53,13 @@ PongState::PongState()
     ballPos = glm::vec2(-0.02f,0.02f);
     ballLastPos = glm::vec2(-0.02f, 0.02f);
 
+    leftScorePos = glm::vec2(-0.4, 0.7);
+    rightScorePos = glm::vec2(0.4, 0.7);
+
     // initializing the random distribution to sample from
     setupDistribution();
 
-    // randomize ball velocity vector direction and normalize to set the initial direction
+    // randomize ball velocity vector direction to start
     setBallInitialDirection();
 
 	// indices to draw rectangles from triangle coordinates
@@ -47,6 +70,11 @@ PongState::PongState()
     glGenVertexArrays(1, &leftBarVAO);
     glGenVertexArrays(1, &rightBarVAO);
     glGenVertexArrays(1, &ballVAO);
+    glGenVertexArrays(1, &leftScoreFirstDigitVAO);
+    glGenVertexArrays(1, &leftScoreSecondDigitVAO);
+    glGenVertexArrays(1, &rightScoreFirstDigitVAO);
+    glGenVertexArrays(1, &rightScoreSecondDigitVAO);
+
 
     // setting up the left bar first
     glBindVertexArray(leftBarVAO);
@@ -55,6 +83,10 @@ PongState::PongState()
     glGenBuffers(1, &leftBarVBO);
     glGenBuffers(1, &rightBarVBO);
     glGenBuffers(1, &ballVBO);
+    glGenBuffers(1, &leftScoreFirstDigitVBO);
+    glGenBuffers(1, &leftScoreSecondDigitVBO);
+    glGenBuffers(1, &rightScoreFirstDigitVBO);
+    glGenBuffers(1, &rightScoreSecondDigitVBO);
     
     glBindBuffer(GL_ARRAY_BUFFER, leftBarVBO);
     glBufferData(GL_ARRAY_BUFFER, leftBarLength * sizeof(float), leftBarVertices, GL_DYNAMIC_DRAW);
@@ -63,6 +95,10 @@ PongState::PongState()
     glGenBuffers(1, &leftBarEBO);
     glGenBuffers(1, &rightBarEBO);
     glGenBuffers(1, &ballEBO);
+    glGenBuffers(1, &leftScoreFirstDigitEBO);
+    glGenBuffers(1, &leftScoreSecondDigitEBO);
+    glGenBuffers(1, &rightScoreFirstDigitEBO);
+    glGenBuffers(1, &rightScoreSecondDigitEBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, leftBarEBO);
     // static draw since the indices do not change, only the vertices might change
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesLength * sizeof(unsigned int), indices, GL_STATIC_DRAW);
@@ -101,6 +137,101 @@ PongState::PongState()
     glEnableVertexAttribArray(1); //color
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
 
+    
+
+    // setting up left score first digit attributes
+    glBindVertexArray(leftScoreFirstDigitVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, leftScoreFirstDigitVBO);
+    glBufferData(GL_ARRAY_BUFFER, leftScoreLength * sizeof(float), leftScoreFirstDigitVertices, GL_DYNAMIC_DRAW); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, leftScoreFirstDigitEBO);
+    // static draw since the indices do not change, only the vertices might change
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesLength * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    
+    // declaring attributes
+    glEnableVertexAttribArray(0); //position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
+    glEnableVertexAttribArray(1); //color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float))); 
+    glEnableVertexAttribArray(2); //texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float))); 
+
+    // loading a texture we will need for our scores
+    glGenTextures(1, &scoreTexture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, scoreTexture);
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+    // loading our texture
+    stbi_set_flip_vertically_on_load(true);
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("Textures/characters.bmp", &width, &height, &nrChannels, 0);
+
+    if (data == nullptr) {
+        // we failed to load the texture
+        std::cout << "FAILED::LOADING::TEXTURE!" << std::endl;
+        return;
+    }
+
+    // generating texture and mipmap based on loaded image
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // we can free the data, we have the mipmaps generated
+    stbi_image_free(data);
+
+    // setting up left score second digit attributes
+    glBindVertexArray(leftScoreSecondDigitVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, leftScoreSecondDigitVBO);
+    glBufferData(GL_ARRAY_BUFFER, leftScoreLength * sizeof(float), leftScoreSecondDigitVertices, GL_DYNAMIC_DRAW); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, leftScoreSecondDigitEBO);
+    // static draw since the indices do not change, only the vertices might change
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesLength * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    
+    // declaring attributes
+    glEnableVertexAttribArray(0); //position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
+    glEnableVertexAttribArray(1); //color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float))); 
+    glEnableVertexAttribArray(2); //texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float))); 
+
+    // setting up right score first digit attributes
+    glBindVertexArray(rightScoreFirstDigitVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, rightScoreFirstDigitVBO);
+    glBufferData(GL_ARRAY_BUFFER, rightScoreLength * sizeof(float), rightScoreFirstDigitVertices, GL_DYNAMIC_DRAW); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rightScoreFirstDigitEBO);
+    // static draw since the indices do not change, only the vertices might change
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesLength * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    
+    // declaring attributes
+    glEnableVertexAttribArray(0); //position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
+    glEnableVertexAttribArray(1); //color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float))); 
+    glEnableVertexAttribArray(2); //texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float))); 
+
+    // setting up right score second digit attributes
+    glBindVertexArray(rightScoreSecondDigitVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, rightScoreSecondDigitVBO);
+    glBufferData(GL_ARRAY_BUFFER, rightScoreLength * sizeof(float), rightScoreSecondDigitVertices, GL_DYNAMIC_DRAW); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rightScoreSecondDigitEBO);
+    // static draw since the indices do not change, only the vertices might change
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesLength * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    
+    // declaring attributes
+    glEnableVertexAttribArray(0); //position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0));
+    glEnableVertexAttribArray(1); //color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float))); 
+    glEnableVertexAttribArray(2); //texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float))); 
+
 }
 
 void PongState::draw(GLFWwindow* window)
@@ -108,13 +239,89 @@ void PongState::draw(GLFWwindow* window)
     // handling movement
     handleMovement(window);
     handleAIMovement();
-    handleBallMovement();
+    int isGoal = handleBallMovement();
+    //printf("left score: %d ----- right score: %d \n", leftScore, rightScore);
+
+    // drawing the score
+    int leftScoreLeftDigit, leftScoreRightDigit;
+    if (leftScore < 9) {
+        leftScoreLeftDigit = 0;
+        leftScoreRightDigit = leftScore;
+    }
+    else {
+        leftScoreLeftDigit = leftScore / 10;
+        leftScoreRightDigit = leftScore % 10;
+    }
+    leftScoreFirstDigitShader->use();
+    // binding the texture used for the score
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE0, scoreTexture);
+    // sending uniform for translation
+    glm::mat4 translation = glm::mat4(1.0f);
+    translation = glm::translate(translation, glm::vec3(leftScorePos, 0.0f));
+    int transformLoc = glGetUniformLocation(leftScoreFirstDigitShader->ID, "transformation");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(translation));
+    // sending uniform for texture shift
+    transformLoc = glGetUniformLocation(leftScoreFirstDigitShader->ID, "textureShift");
+    glUniform2f(transformLoc, leftScoreLeftDigit * 0.0627f, 0);
+	glBindVertexArray(leftScoreFirstDigitVAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+    leftScoreSecondDigitShader->use();
+    // sending uniform for translation
+    translation = glm::mat4(1.0f);
+    translation = glm::translate(translation, glm::vec3(leftScorePos + glm::vec2(scoreDigitDims.x,0.0f), 0.0f));
+    transformLoc = glGetUniformLocation(leftScoreSecondDigitShader->ID, "transformation");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(translation));
+    // sending uniform for texture shift
+    transformLoc = glGetUniformLocation(leftScoreSecondDigitShader->ID, "textureShift");
+    glUniform2f(transformLoc, leftScoreRightDigit * 0.0627f, 0);
+	glBindVertexArray(leftScoreSecondDigitVAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+    
+    int rightScoreLeftDigit, rightScoreRightDigit;
+    if (rightScore < 9) {
+        rightScoreLeftDigit = 0;
+        rightScoreRightDigit = rightScore;
+    }
+    else {
+        rightScoreLeftDigit = rightScore / 10;
+        rightScoreLeftDigit = rightScore % 10;
+    }
+    rightScoreFirstDigitShader->use();
+    // sending uniform for translation
+    translation = glm::mat4(1.0f);
+    translation = glm::translate(translation, glm::vec3(rightScorePos , 0.0f));
+    transformLoc = glGetUniformLocation(rightScoreFirstDigitShader->ID, "transformation");
+    // sending uniform for texture shift to adjust digit
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(translation));
+    // sending uniform for texture shift
+    transformLoc = glGetUniformLocation(rightScoreFirstDigitShader->ID, "textureShift");
+    glUniform2f(transformLoc, rightScoreLeftDigit * 0.0627f, 0);
+	glBindVertexArray(rightScoreFirstDigitVAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+    rightScoreSecondDigitShader->use();
+    // sending uniform for translation
+    translation = glm::mat4(1.0f);
+    translation = glm::translate(translation, glm::vec3(rightScorePos + glm::vec2(scoreDigitDims.x,0.0f) , 0.0f));
+    transformLoc = glGetUniformLocation(rightScoreSecondDigitShader->ID, "transformation");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(translation));
+    // sending uniform for texture shift
+    transformLoc = glGetUniformLocation(rightScoreSecondDigitShader->ID, "textureShift");
+    glUniform2f(transformLoc, rightScoreRightDigit * 0.0627f, 0);
+	glBindVertexArray(rightScoreSecondDigitVAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 
     leftBarShader->use();
     // sending uniform for translation
-    glm::mat4 translation = glm::mat4(1.0f);
+    translation = glm::mat4(1.0f);
     translation = glm::translate(translation, glm::vec3(leftBarPos, 0.0f));
-    int transformLoc = glGetUniformLocation(leftBarShader->ID, "transformation");
+    transformLoc = glGetUniformLocation(leftBarShader->ID, "transformation");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(translation));
 	glBindVertexArray(leftBarVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -137,6 +344,14 @@ void PongState::draw(GLFWwindow* window)
 	glBindVertexArray(ballVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+
+    
+
+
+    if (isGoal) {
+        // check for end of game status, if not end of game then reset the board
+        resetGame();
+    }
 }
 
 void PongState::destroyState()
@@ -188,10 +403,35 @@ float* PongState::generateBall()
 
 /*
     generating a quad we can use a bitmap font on to simulate a score
+    digit is a value from 0 to 9 from which we generate texture coordinates to the corresponding digit in the bitmap font
 */
-float* PongState::generateScoreBoard()
+float* PongState::generateScoreBoard(int digit)
 {
-    //TODO 
+    float* vertices = new float[32]{
+         // vertices      // color       // texture coordinates
+		 0.0f,-0.1f,0.00f,1.0f,1.0f,1.0f, digit * 0.0627f, 0.75f,// bottom left of rectangle
+		 0.1f,-0.1f, 0.00f, 1.0f, 1.0f, 1.0f, (digit+1) * 0.0627f, 0.75f,// bottom right of rectangle
+		 0.0f,0.0f,0.00f,1.0f, 1.0f, 1.0f,digit * 0.0627f,0.75f + 0.0627f,  // top left of rectangle
+		 0.1f,0.0f,0.00f,1.0f, 1.0f, 1.0f, (digit+1)*0.0627f, 0.75f+ 0.0625f // top right of rectangle
+	};
+    return vertices;
+}
+
+/* adjusts the scoreboard buffer to account for a new digit*/
+void PongState::adjustScoreBoard(float* scoreBoard, int digit)
+{
+    // bottom left
+    scoreBoard[6] = 0.25f + 0.0625f; 
+    scoreBoard[7] = digit * 0.0625f;
+    // bottom right
+    scoreBoard[14] = 0.25f + 0.0625f; 
+    scoreBoard[15] = (digit+1) * 0.0625f;
+    // top left
+    scoreBoard[22] = 0.25f;
+    scoreBoard[23] = digit * 0.0625f;
+    // top right
+    scoreBoard[30] = 0.25f;
+    scoreBoard[31] = (digit + 1) * 0.0625f;
 }
 
 unsigned int* PongState::generateIndices()
@@ -203,7 +443,7 @@ unsigned int* PongState::generateIndices()
 	return indices;
 }
 
-void PongState::handleBallMovement()
+int PongState::handleBallMovement()
 {
    // update the balls state and account for collisions 
     // each collision will make the ball faster in the collision component of the velocity!
@@ -219,13 +459,13 @@ void PongState::handleBallMovement()
     // for collisions, we reset the position to the boundary and reverse the component of the velocity based on the collision
     if (ballPos.x <= -1.0f) {
         // goal state! this is a goal for the right player (hit the left wall)
-        resetGame();
-        return;
+        rightScore += 1;
+        return 1;
     }
     else if (ballPos.x + ballDims.x >= 1.0f) {
         // goal state! this is a goal for the left player (hit the right wall)
-        resetGame();
-        return;
+        leftScore += 1;
+        return 1;
     }
     else if (ballPos.y - ballDims.y <= -1.0f) {
         // hit the bottom wall
@@ -282,7 +522,6 @@ void PongState::handleBallMovement()
             ballPos.y = leftBarPos.y - barDims.y;
             ballVelocity *= -1;
         }
-        
     }
 
     // check collision with right bar
@@ -339,7 +578,7 @@ void PongState::handleBallMovement()
         
     } 
     
-    
+    return 0;
 }
 
 void PongState::handleAIMovement()
@@ -422,5 +661,7 @@ void PongState::setBallInitialDirection()
     
     //printf("init ball velocity: %f ----- %f \n", ballVelocity.x, ballVelocity.y);
 }
+
+
 
 
